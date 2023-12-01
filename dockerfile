@@ -22,6 +22,7 @@ RUN docker-php-ext-install pdo pdo_sqlite \
 # Copy PHP files
 COPY register.php .
 COPY test.db .
+COPY dashboard.php .
 
 # Copy SSL certificates
 COPY cert.pem .
