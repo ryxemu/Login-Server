@@ -87,6 +87,6 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func registerFormHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("register.html"))
+	tmpl := template.Must(template.ParseFiles("register.php"))
 	tmpl.Execute(w, nil)
 }
