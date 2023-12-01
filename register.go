@@ -15,11 +15,11 @@ import (
 var db *sql.DB
 
 func handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
-	// OAuth login handling (same as previous code)
+	// OAuth login handling
 }
 
 func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
-	// OAuth callback handling (same as previous code)
+	// OAuth callback handling
 }
 
 func init() {
