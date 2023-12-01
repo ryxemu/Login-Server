@@ -31,16 +31,16 @@
         $username = $_POST['username'];
         $password = $_POST['password'];
 
-        // Perform input validation (you can add more checks here)
         if (empty($username) || empty($password)) {
             echo "Username and password are required.";
         } else {
-            // Hash the password (improve security)
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            // Generate salt and hash the password using bcrypt
+            $salt = password_hash($username, PASSWORD_DEFAULT);
+            $hashed_password = password_hash($password, PASSWORD_BCRYPT, ['salt' => $salt]);
 
             // Prepare and execute SQL query to insert user into the database
-            $stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-            $stmt->bind_param("ss", $username, $hashed_password);
+            $stmt = $conn->prepare("INSERT INTO users (username, password, salt) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $username, $hashed_password, $salt);
 
             if ($stmt->execute()) {
                 echo "Registration successful";
