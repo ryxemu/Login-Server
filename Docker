@@ -1,0 +1,21 @@
+# Use Alpine Linux as base image
+FROM alpine:latest
+
+# Install necessary packages (e.g., SQLite, Node.js, etc.)
+RUN apk add --update nodejs npm sqlite
+
+# Set the working directory
+WORKDIR /app
+
+# Copy your Node.js server files into the container
+COPY server.js /app/server.js
+COPY package.json /app/package.json
+
+# Install dependencies
+RUN npm install
+
+# Expose the port your server runs on
+EXPOSE 3000
+
+# Command to start the server
+CMD ["node", "server.js"]
