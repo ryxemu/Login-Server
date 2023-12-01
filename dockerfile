@@ -5,7 +5,7 @@ WORKDIR /go/src/app
 
 # Copy Go files
 COPY main.go .
-COPY registration.go .
+COPY register.go .
 
 # Build Go binary
 RUN go build -o main .
