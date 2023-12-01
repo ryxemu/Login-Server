@@ -14,16 +14,27 @@ const db = new sqlite3.Database(':memory:'); // In-memory database for simplicit
 
 // Create users table
 db.serialize(() => {
-    db.run('CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password TEXT)');
+    db.run('CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password TEXT, salt TEXT)');
+});
 
-    // Insert some example users
-    const stmt = db.prepare('INSERT INTO users (username, password) VALUES (?, ?)');
-    const salt = bcrypt.genSaltSync(10);
-    const hash1 = bcrypt.hashSync('password1', salt);  //Example
-    const hash2 = bcrypt.hashSync('password2', salt);  //Example
-    stmt.run('user1', hash1); //Example
-    stmt.run('user2', hash2); //Example
-    stmt.finalize();
+// User registration endpoint
+app.post('/register', (req, res) => {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({ message: 'Username and password are required' });
+    }
+
+    const saltRounds = 12; // Increase rounds for stronger hashing
+    const salt = bcrypt.genSaltSync(saltRounds);
+    const hashedPassword = bcrypt.hashSync(password, salt);
+
+    db.run('INSERT INTO users (username, password, salt) VALUES (?, ?, ?)', [username, hashedPassword, salt], (err) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error registering user' });
+        }
+        res.json({ message: 'Registration successful' });
+    });
 });
 
 // User login endpoint
@@ -37,6 +48,8 @@ app.post('/login', (req, res) => {
             res.status(401).json({ message: 'Invalid credentials' });
         } else {
             const passwordHash = row.password;
+            const salt = row.salt;
+
             if (bcrypt.compareSync(password, passwordHash)) {
                 res.json({ message: 'Login successful' });
             } else {
