@@ -23,9 +23,13 @@ RUN docker-php-ext-install pdo pdo_sqlite \
 COPY register.php .
 COPY test.db .
 
+# Copy SSL certificates
+COPY cert.pem .
+COPY key.pem .
+
 # Copy Go binary from the previous stage
 COPY --from=go-builder /go/src/app/main .
 
-EXPOSE 80
+EXPOSE 443
 
-CMD ["php", "-S", "0.0.0.0:80"]
+CMD ["php", "-S", "0.0.0.0:443", "--docroot", ".", "--server", "cert.pem", "key.pem", "-t", "."]
