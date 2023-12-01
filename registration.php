@@ -10,7 +10,7 @@ if (isset($_GET['code'])) {
     $code = $_GET['code'];
     $client_id = 'YOUR_GOOGLE_CLIENT_ID';
     $client_secret = 'YOUR_GOOGLE_CLIENT_SECRET';
-    $redirect_uri = 'http://yourdomain.com/registration.php';
+    $redirect_uri = 'http://yourdomain.com/google-callback.php'; // Replace with your registered callback URI
 
     $token_url = 'https://oauth2.googleapis.com/token';
     $params = [
@@ -38,48 +38,40 @@ if (isset($_GET['code'])) {
         $info_url = 'https://www.googleapis.com/oauth2/v2/userinfo?access_token=' . $access_token;
         $user_info = json_decode(file_get_contents($info_url), true);
 
-        // Connect to MySQL database
-        $servername = "localhost";
-        $username = "your_mysql_username";
-        $password = "your_mysql_password";
-        $dbname = "your_database_name";
-
-        $conn = new mysqli($servername, $username, $password, $dbname);
-
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
+        // Connect to SQLite database
+        $db = new SQLite3('test.db');
+        if (!$db) {
+            die("Database connection failed: " . $db->lastErrorMsg());
         }
 
         // Check if user already exists in the database
         $query = "SELECT * FROM users WHERE google_id = '" . $user_info['id'] . "'";
-        $result = $conn->query($query);
-
-        if ($result->num_rows > 0) {
+        $result = $db->query($query);
+        
+        if ($result->fetchArray(SQLITE3_ASSOC)) {
             $_SESSION['user_id'] = $user_info['id'];
             header('Location: /dashboard.php');
             exit();
         } else {
             // Insert new user into the database
-            $stmt = $conn->prepare("INSERT INTO users (google_id, email, name) VALUES (?, ?, ?)");
-            $stmt->bind_param("sss", $user_info['id'], $user_info['email'], $user_info['name']);
-
-            if ($stmt->execute()) {
-                $_SESSION['user_id'] = $user_info['id'];
-                header('Location: /dashboard.php');
+            $insertQuery = "INSERT INTO users (google_id, email, name) VALUES ('" . $user_info['id'] . "', '" . $user_info['email'] . "', '" . $user_info['name'] . "')";
+            $result = $db->exec($insertQuery);
+            if (!$result) {
+                echo "Error: " . $db->lastErrorMsg();
                 exit();
-            } else {
-                echo "Error: " . $stmt->error;
             }
-            $stmt->close();
+            $_SESSION['user_id'] = $user_info['id'];
+            header('Location: /dashboard.php');
+            exit();
         }
 
-        $conn->close();
+        $db->close();
     } else {
         echo 'Error while fetching access token.';
     }
 } else {
     $client_id = 'YOUR_GOOGLE_CLIENT_ID';
-    $redirect_uri = 'http://yourdomain.com/registration.php';
+    $redirect_uri = 'http://yourdomain.com/google-callback.php'; // Replace with your registered callback URI
 
     $auth_url = 'https://accounts.google.com/o/oauth2/auth?client_id=' . $client_id . '&redirect_uri=' . $redirect_uri . '&response_type=code&scope=email profile';
     header('Location: ' . $auth_url);
