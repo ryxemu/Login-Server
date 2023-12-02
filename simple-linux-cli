@@ -17,7 +17,7 @@ func main() {
 
 	// Handle options
 	if *firewall {
-		// Adjust firewall rules (platform-specific)
+		// Adjust firewall rules (Linux-specific)
 		adjustFirewall()
 	}
 
@@ -38,10 +38,9 @@ func main() {
 }
 
 func adjustFirewall() {
-	// Add platform-specific firewall rule commands here (Windows/Linux)
-	// Example: Add a Windows firewall rule
-	cmd := exec.Command("powershell", "-Command", "New-NetFirewallRule -DisplayName 'Allow Randomized Port' -Direction Inbound -LocalPort <your_port_number> -Protocol TCP -Action Allow")
-	// Replace <your_port_number> with the actual port number you are using on the server
+	// Adjust firewall rules for Linux (using iptables)
+	cmd := exec.Command("iptables", "-A", "INPUT", "-p", "tcp", "--dport", "<your_port_number>", "-j", "ACCEPT")
+	// Replace <your_port_number> with the actual port number you want to allow
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println("Failed to adjust firewall:", err)
@@ -58,13 +57,12 @@ func managePort(port int) {
 
 func setServerIP(serverIP string) {
 	// Set server IP address (configure network settings)
-	// Example: Change server's IP address
 	fmt.Printf("Setting server IP to %s...\n", serverIP)
 	// Implement your logic here
 }
 
 func configureNginx() {
 	// Configure Nginx as a reverse proxy
-	// Example: Modify Nginx configuration
 	fmt.Println("Configuring Nginx as a reverse proxy...")
-	}
+	// Implement your logic here
+}
