@@ -1,0 +1,2 @@
+# Create a new inbound firewall rule to allow incoming connections on a specific port
+New-NetFirewallRule -DisplayName "Allow Randomized Port" -Direction Inbound -LocalPort <your_port_number> -Protocol TCP -Action Allow
