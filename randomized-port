@@ -1,0 +1,54 @@
+package main
+
+import (
+	"fmt"
+	"net"
+	"net/http"
+	"os"
+	"strconv"
+)
+
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	// Your 2FA authentication logic here...
+	// ...
+
+	// Generate a random port
+	ln, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		http.Error(w, "Failed to create a random port", http.StatusInternalServerError)
+		return
+	}
+	defer ln.Close()
+
+	addr := ln.Addr().(*net.TCPAddr)
+	port := strconv.Itoa(addr.Port)
+
+	// Return the generated port to the client
+	fmt.Fprintf(w, "Generated port: %s", port)
+
+	// Optionally, you can start a service on this port or handle connections
+	// For instance: go serveSomeService(ln)
+}
+
+func serveSomeService(ln net.Listener) {
+	// Handle connections or start a service on the generated port
+	for {
+		conn, err := ln.Accept()
+		if err != nil {
+			// Handle error
+			continue
+		}
+		// Handle incoming connections
+		go handleConnection(conn)
+	}
+}
+
+func handleConnection(conn net.Conn) {
+	defer conn.Close()
+	// Handle incoming connection
+}
+
+func main() {
+	http.HandleFunc("/login", loginHandler)
+	http.ListenAndServe(":8080", nil)
+}
