@@ -1,41 +1,63 @@
 package main
 
 import (
-	"database/sql"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
-
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/pquerna/otp/totp"
+	"golang.org/x/crypto/bcrypt"
 )
 
-var db *sql.DB
+func registrationHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		// Handle user registration logic here
+		email := r.FormValue("email")
+		password := r.FormValue("password")
 
-func handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
-	// OAuth login handling
+		// Validate and hash the password
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			http.Error(w, "Failed to hash the password", http.StatusInternalServerError)
+			return
+		}
+
+		// Save the user details (email and hashed password) to the database (replace this with your DB logic)
+		// ...
+
+		// Generate a secret for 2FA
+		key, err := totp.Generate(totp.GenerateOpts{
+			Issuer:      "YourAppName",
+			AccountName: email, // User's email (or any identifier)
+		})
+		if err != nil {
+			http.Error(w, "Failed to generate 2FA secret", http.StatusInternalServerError)
+			return
+		}
+
+		// Get QR code URL for 2FA setup
+		qrCode, err := key.Image(200, 200)
+		if err != nil {
+			http.Error(w, "Failed to generate QR code", http.StatusInternalServerError)
+			return
+		}
+		qrCodeURL := fmt.Sprintf("data:image/png;base64,%s", qrCode)
+
+		// Display the QR code for 2FA setup (you can render this in an HTML template)
+		fmt.Fprintf(w, "<h1>Enable Two-Factor Authentication (2FA)</h1>")
+		fmt.Fprintf(w, "<p>Scan the QR code below with an authenticator app:</p>")
+		fmt.Fprintf(w, "<img src='%s' alt='QR Code'>", qrCodeURL)
+	} else {
+		// Display registration form (similar to the previous code)
+		fmt.Fprintf(w, "<h1>User Registration</h1>")
+		fmt.Fprintf(w, "<form method='post' action='/register'>")
+		fmt.Fprintf(w, "Email: <input type='text' name='email'><br>")
+		fmt.Fprintf(w, "Password: <input type='password' name='password'><br>")
+		fmt.Fprintf(w, "<input type='submit' value='Register'>")
+		fmt.Fprintf(w, "</form>")
+	}
 }
 
-func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
-	// OAuth callback handling
-}
-
-func init() {
-	var err error
-	db, err = sql.Open("sqlite3", "test.db")
-	if err != nil {
-		panic("Failed to open database")
-	}
-
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS users (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		google_id TEXT,
-		email TEXT,
-		name TEXT
-	)`)
-	if err != nil {
-		panic("Failed to create table")
-	}
+func main() {
+	http.HandleFunc("/register", registrationHandler)
+	http.ListenAndServe(":8080", nil)
 }
