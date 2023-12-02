@@ -1,0 +1,2 @@
+# Allow incoming connections on a specific port (replace <your_port_number> with the actual port number)
+sudo iptables -A INPUT -p tcp --dport <your_port_number> -j ACCEPT
