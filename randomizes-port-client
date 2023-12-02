@@ -1,0 +1,32 @@
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"io/ioutil"
+)
+
+func main() {
+	resp, err := http.Get("http://your-server/login")
+	if err != nil {
+		fmt.Println("Failed to retrieve port:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Server returned an error:", resp.Status)
+		return
+	}
+
+	port, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Failed to read port:", err)
+		return
+	}
+
+	// Connect to the server's generated port using the obtained port number
+	// Example: You can use net.Dial to establish a connection
+
+	fmt.Println("Generated port:", string(port))
+}
