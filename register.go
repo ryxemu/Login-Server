@@ -15,7 +15,7 @@ func registrationHandler(w http.ResponseWriter, r *http.Request) {
 		password := r.FormValue("password")
 
 		// Validate and hash the password
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		_, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		if err != nil {
 			http.Error(w, "Failed to hash the password", http.StatusInternalServerError)
 			return
@@ -56,6 +56,7 @@ func registrationHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "</form>")
 	}
 }
+
 
 func main() {
 	http.HandleFunc("/register", registrationHandler)
